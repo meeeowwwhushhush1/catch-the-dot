@@ -27,7 +27,6 @@
       position: relative;
     }
 
-    /* ANIMATED BACKGROUND */
     body::before,
     body::after {
       content: "";
@@ -38,7 +37,6 @@
       filter: blur(90px);
       opacity: 0.25;
       pointer-events: none;
-      z-index: -1;
     }
 
     body::before {
@@ -59,6 +57,7 @@
       from {
         transform: translate(0, 0);
       }
+
       to {
         transform: translate(120px, 80px);
       }
@@ -68,12 +67,12 @@
       from {
         transform: translate(0, 0);
       }
+
       to {
         transform: translate(-100px, -80px);
       }
     }
 
-    /* FLOATING PARTICLES */
     .bgParticle {
       position: fixed;
       width: 3px;
@@ -83,7 +82,6 @@
       opacity: 0.6;
       pointer-events: none;
       animation: floatParticle linear infinite;
-      z-index: -1;
     }
 
     @keyframes floatParticle {
@@ -133,9 +131,11 @@
       border-radius: 15px;
 
       background:
-        radial-gradient(circle at center,
+        radial-gradient(
+          circle at center,
           rgba(0, 100, 255, 0.10),
-          rgba(0, 0, 20, 0.65));
+          rgba(0, 0, 20, 0.65)
+        );
 
       overflow: hidden;
 
@@ -145,7 +145,6 @@
         inset 0 0 30px rgba(0, 100, 255, 0.12);
     }
 
-    /* SUBTLE MOVING GRID */
     #game::before {
       content: "";
       position: absolute;
@@ -225,7 +224,6 @@
       }
     }
 
-    /* HIT PARTICLES */
     .particle {
       position: absolute;
       width: 8px;
@@ -260,7 +258,6 @@
       }
     }
 
-    /* START BUTTON */
     #start {
       padding: 13px 28px;
       font-size: 18px;
@@ -299,18 +296,11 @@
     #start:active {
       transform: scale(0.96);
     }
-
-    /* SMALL SCANLINE EFFECT */
-    body::marker {
-      display: none;
-    }
-
   </style>
 </head>
 
 <body>
 
-  <!-- BACKGROUND PARTICLES -->
   <div class="bgParticle" style="left:5%; animation-duration:9s;"></div>
   <div class="bgParticle" style="left:15%; animation-duration:12s;"></div>
   <div class="bgParticle" style="left:27%; animation-duration:10s;"></div>
@@ -334,7 +324,6 @@
   </div>
 
   <script>
-
     let score = 0;
     let time = 30;
     let gameRunning = false;
@@ -366,16 +355,11 @@
     const startButton =
       document.getElementById("start");
 
-
     highScoreText.textContent =
       "🏆 High Score: " + highScore;
 
-
-    // SOUND
     function playSound() {
-
       if (!audioContext) {
-
         audioContext =
           new (window.AudioContext ||
                window.webkitAudioContext)();
@@ -423,10 +407,7 @@
       );
     }
 
-
-    // MOVE DOT
     function moveDot() {
-
       const maxX =
         game.clientWidth -
         dot.offsetWidth;
@@ -442,68 +423,45 @@
         Math.random() * maxY + "px";
     }
 
-
-    // DIFFICULTY
     function setDifficulty() {
-
       let size;
       let speed;
 
       if (score < 10) {
-
         size = 55;
         speed = 1000;
-
-        levelText.textContent =
-          "🟢 Easy";
+        levelText.textContent = "🟢 Easy";
 
       } else if (score < 20) {
-
         size = 45;
         speed = 750;
-
-        levelText.textContent =
-          "🟡 Medium";
+        levelText.textContent = "🟡 Medium";
 
       } else if (score < 30) {
-
         size = 35;
         speed = 550;
-
-        levelText.textContent =
-          "🟠 Hard";
+        levelText.textContent = "🟠 Hard";
 
       } else {
-
         size = 28;
         speed = 400;
-
-        levelText.textContent =
-          "🔴 INSANE";
+        levelText.textContent = "🔴 INSANE";
       }
 
-      dot.style.width =
-        size + "px";
-
-      dot.style.height =
-        size + "px";
+      dot.style.width = size + "px";
+      dot.style.height = size + "px";
 
       clearInterval(moveTimer);
 
       moveTimer =
         setInterval(function() {
-
           if (gameRunning) {
             moveDot();
           }
-
         }, speed);
     }
 
-
-    // PARTICLE EFFECT
     function createParticles() {
-
       const rect =
         dot.getBoundingClientRect();
 
@@ -521,12 +479,10 @@
         rect.height / 2;
 
       for (let i = 0; i < 10; i++) {
-
         const particle =
           document.createElement("div");
 
-        particle.className =
-          "particle";
+        particle.className = "particle";
 
         particle.style.left =
           centerX + "px";
@@ -552,10 +508,7 @@
       }
     }
 
-
-    // DOT TAP
     dot.onclick = function() {
-
       if (!gameRunning) return;
 
       score++;
@@ -564,7 +517,6 @@
         "Score: " + score;
 
       playSound();
-
       createParticles();
 
       dot.classList.remove("hit");
@@ -574,14 +526,10 @@
       dot.classList.add("hit");
 
       setDifficulty();
-
       moveDot();
     };
 
-
-    // START
     startButton.onclick = function() {
-
       clearInterval(timer);
       clearInterval(moveTimer);
 
@@ -604,10 +552,7 @@
       dot.style.display =
         "block";
 
-
-      // UNLOCK AUDIO
       if (!audioContext) {
-
         audioContext =
           new (window.AudioContext ||
                window.webkitAudioContext)();
@@ -618,20 +563,16 @@
       }
 
       setDifficulty();
-
       moveDot();
-
 
       timer =
         setInterval(function() {
-
           time--;
 
           timerText.textContent =
             "Time: " + time;
 
           if (time <= 0) {
-
             clearInterval(timer);
             clearInterval(moveTimer);
 
@@ -646,9 +587,7 @@
             startButton.textContent =
               "PLAY AGAIN";
 
-
             if (score > highScore) {
-
               highScore = score;
 
               localStorage.setItem(
@@ -666,7 +605,6 @@
               );
 
             } else {
-
               alert(
                 "GAME OVER! 🎯\n\nScore: " +
                 score +
@@ -675,11 +613,8 @@
               );
             }
           }
-
         }, 1000);
     };
-
-
   </script>
 
 </body>
