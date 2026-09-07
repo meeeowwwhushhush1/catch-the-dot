@@ -5,9 +5,7 @@
   <title>Catch the Dot 🎯</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -56,15 +54,9 @@
     }
 
     @keyframes hit {
-      0% {
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(1.5);
-      }
-      100% {
-        transform: scale(1);
-      }
+      0% { transform: scale(1); }
+      50% { transform: scale(1.5); }
+      100% { transform: scale(1); }
     }
 
     .particle {
@@ -122,6 +114,7 @@
     let gameRunning = false;
     let timer;
     let moveTimer;
+    let audioContext = null;
 
     let highScore = localStorage.getItem("highScore") || 0;
 
@@ -138,10 +131,17 @@
 
 
     // SOUND
-    const audioContext =
-      new (window.AudioContext || window.webkitAudioContext)();
-
     function playSound() {
+
+      if (!audioContext) {
+        audioContext =
+          new (window.AudioContext ||
+               window.webkitAudioContext)();
+      }
+
+      if (audioContext.state === "suspended") {
+        audioContext.resume();
+      }
 
       const oscillator =
         audioContext.createOscillator();
@@ -149,10 +149,27 @@
       const gain =
         audioContext.createGain();
 
-      oscillator.frequency.value = 600;
       oscillator.type = "sine";
 
-      gain.gain.value = 0.15;
+      oscillator.frequency.setValueAtTime(
+        700,
+        audioContext.currentTime
+      );
+
+      oscillator.frequency.exponentialRampToValueAtTime(
+        300,
+        audioContext.currentTime + 0.1
+      );
+
+      gain.gain.setValueAtTime(
+        0.25,
+        audioContext.currentTime
+      );
+
+      gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        audioContext.currentTime + 0.1
+      );
 
       oscillator.connect(gain);
       gain.connect(audioContext.destination);
@@ -160,7 +177,7 @@
       oscillator.start();
 
       oscillator.stop(
-        audioContext.currentTime + 0.08
+        audioContext.currentTime + 0.1
       );
     }
 
@@ -192,28 +209,24 @@
 
         size = 55;
         speed = 1000;
-
         levelText.textContent = "🟢 Easy";
 
       } else if (score < 20) {
 
         size = 45;
         speed = 750;
-
         levelText.textContent = "🟡 Medium";
 
       } else if (score < 30) {
 
         size = 35;
         speed = 550;
-
         levelText.textContent = "🟠 Hard";
 
       } else {
 
         size = 28;
         speed = 400;
-
         levelText.textContent = "🔴 INSANE";
       }
 
@@ -232,17 +245,22 @@
     }
 
 
-    // HIT EFFECT
+    // PARTICLE EFFECT
     function createParticles() {
 
-      const rect = dot.getBoundingClientRect();
-      const gameRect = game.getBoundingClientRect();
+      const rect =
+        dot.getBoundingClientRect();
+
+      const gameRect =
+        game.getBoundingClientRect();
 
       const centerX =
-        rect.left - gameRect.left + rect.width / 2;
+        rect.left - gameRect.left +
+        rect.width / 2;
 
       const centerY =
-        rect.top - gameRect.top + rect.height / 2;
+        rect.top - gameRect.top +
+        rect.height / 2;
 
       for (let i = 0; i < 10; i++) {
 
@@ -251,8 +269,11 @@
 
         particle.className = "particle";
 
-        particle.style.left = centerX + "px";
-        particle.style.top = centerY + "px";
+        particle.style.left =
+          centerX + "px";
+
+        particle.style.top =
+          centerY + "px";
 
         particle.style.setProperty(
           "--x",
@@ -273,7 +294,7 @@
     }
 
 
-    // DOT CLICK
+    // DOT TAP
     dot.onclick = function() {
 
       if (!gameRunning) return;
@@ -299,7 +320,7 @@
     };
 
 
-    // START GAME
+    // START
     startButton.onclick = function() {
 
       clearInterval(timer);
@@ -309,13 +330,27 @@
       time = 30;
       gameRunning = true;
 
-      scoreText.textContent = "Score: 0";
-      timerText.textContent = "Time: 30";
-      levelText.textContent = "🟢 Easy";
+      scoreText.textContent =
+        "Score: 0";
 
-      startButton.style.display = "none";
+      timerText.textContent =
+        "Time: 30";
 
-      dot.style.display = "block";
+      levelText.textContent =
+        "🟢 Easy";
+
+      startButton.style.display =
+        "none";
+
+      dot.style.display =
+        "block";
+
+      // Unlock audio when START is tapped
+      if (!audioContext) {
+        audioContext =
+          new (window.AudioContext ||
+               window.webkitAudioContext)();
+      }
 
       if (audioContext.state === "suspended") {
         audioContext.resume();
@@ -332,7 +367,6 @@
         timerText.textContent =
           "Time: " + time;
 
-
         if (time <= 0) {
 
           clearInterval(timer);
@@ -340,7 +374,8 @@
 
           gameRunning = false;
 
-          dot.style.display = "none";
+          dot.style.display =
+            "none";
 
           startButton.style.display =
             "inline-block";
