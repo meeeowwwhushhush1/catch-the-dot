@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catch the Dot 🎯</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    h1 {
+      margin: 15px 0 5px;
+    }
+
+    #score, #timer {
+      font-size: 20px;
+      margin: 5px;
+    }
+
+    #game {
+      position: relative;
+      width: 95vw;
+      height: 75vh;
+      margin: 15px auto;
+      border: 2px solid white;
+      background: #222;
+      overflow: hidden;
+    }
+
+    #dot {
+      position: absolute;
+      width: 55px;
+      height: 55px;
+      background: red;
+      border-radius: 50%;
+      display: none;
+      cursor: pointer;
+    }
+
+    #start {
+      padding: 12px 25px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>🎯 Catch the Dot</h1>
+
+  <div id="score">Score: 0</div>
+  <div id="timer">Time: 30</div>
+
+  <button id="start">START GAME</button>
+
+  <div id="game">
+    <div id="dot"></div>
+  </div>
+
+  <script>
+    let score = 0;
+    let time = 30;
+    let gameRunning = false;
+    let timer;
+
+    const dot = document.getElementById("dot");
+    const game = document.getElementById("game");
+    const scoreText = document.getElementById("score");
+    const timerText = document.getElementById("timer");
+    const startButton = document.getElementById("start");
+
+    function moveDot() {
+      const maxX = game.clientWidth - dot.offsetWidth;
+      const maxY = game.clientHeight - dot.offsetHeight;
+
+      dot.style.left = Math.random() * maxX + "px";
+      dot.style.top = Math.random() * maxY + "px";
+    }
+
+    dot.onclick = function() {
+      if (!gameRunning) return;
+
+      score++;
+      scoreText.textContent = "Score: " + score;
+      moveDot();
+    };
+
+    startButton.onclick = function() {
+      score = 0;
+      time = 30;
+      gameRunning = true;
+
+      scoreText.textContent = "Score: 0";
+      timerText.textContent = "Time: 30";
+      startButton.style.display = "none";
+      dot.style.display = "block";
+
+      moveDot();
+
+      timer = setInterval(function() {
+        time--;
+        timerText.textContent = "Time: " + time;
+
+        if (time <= 0) {
+          clearInterval(timer);
+          gameRunning = false;
+          dot.style.display = "none";
+          startButton.style.display = "inline-block";
+          startButton.textContent = "PLAY AGAIN";
+
+          alert("Game Over! 🎯 Your Score: " + score);
+        }
+      }, 1000);
+    };
+  </script>
+
+</body>
+</html>
