@@ -5,7 +5,9 @@
   <title>Catch the Dot 🎯</title>
 
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -45,12 +47,46 @@
       border-radius: 50%;
       display: none;
       cursor: pointer;
-      box-shadow: 0 0 15px red;
-      transition: width 0.15s, height 0.15s, transform 0.08s;
+      box-shadow: 0 0 20px red;
+      transition: width 0.15s, height 0.15s;
     }
 
     #dot.hit {
-      transform: scale(1.5);
+      animation: hit 0.18s ease;
+    }
+
+    @keyframes hit {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.5);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .particle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: explode 0.4s forwards;
+    }
+
+    @keyframes explode {
+      from {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+
+      to {
+        transform: translate(var(--x), var(--y)) scale(0);
+        opacity: 0;
+      }
     }
 
     #start {
@@ -59,6 +95,7 @@
       border: none;
       border-radius: 10px;
       margin-top: 5px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -79,6 +116,7 @@
   </div>
 
   <script>
+
     let score = 0;
     let time = 30;
     let gameRunning = false;
@@ -95,34 +133,87 @@
     const levelText = document.getElementById("level");
     const startButton = document.getElementById("start");
 
-    highScoreText.textContent = "🏆 High Score: " + highScore;
+    highScoreText.textContent =
+      "🏆 High Score: " + highScore;
 
+
+    // SOUND
+    const audioContext =
+      new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound() {
+
+      const oscillator =
+        audioContext.createOscillator();
+
+      const gain =
+        audioContext.createGain();
+
+      oscillator.frequency.value = 600;
+      oscillator.type = "sine";
+
+      gain.gain.value = 0.15;
+
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+
+      oscillator.start();
+
+      oscillator.stop(
+        audioContext.currentTime + 0.08
+      );
+    }
+
+
+    // MOVE DOT
+    function moveDot() {
+
+      const maxX =
+        game.clientWidth - dot.offsetWidth;
+
+      const maxY =
+        game.clientHeight - dot.offsetHeight;
+
+      dot.style.left =
+        Math.random() * maxX + "px";
+
+      dot.style.top =
+        Math.random() * maxY + "px";
+    }
+
+
+    // DIFFICULTY
     function setDifficulty() {
 
       let size;
       let speed;
 
       if (score < 10) {
+
         size = 55;
         speed = 1000;
-        levelText.textContent = "🟢 Easy";
-      }
 
-      else if (score < 20) {
+        levelText.textContent = "🟢 Easy";
+
+      } else if (score < 20) {
+
         size = 45;
         speed = 750;
-        levelText.textContent = "🟡 Medium";
-      }
 
-      else if (score < 30) {
+        levelText.textContent = "🟡 Medium";
+
+      } else if (score < 30) {
+
         size = 35;
         speed = 550;
-        levelText.textContent = "🟠 Hard";
-      }
 
-      else {
+        levelText.textContent = "🟠 Hard";
+
+      } else {
+
         size = 28;
         speed = 400;
+
         levelText.textContent = "🔴 INSANE";
       }
 
@@ -140,33 +231,75 @@
       }, speed);
     }
 
-    function moveDot() {
 
-      const maxX = game.clientWidth - dot.offsetWidth;
-      const maxY = game.clientHeight - dot.offsetHeight;
+    // HIT EFFECT
+    function createParticles() {
 
-      dot.style.left = Math.random() * maxX + "px";
-      dot.style.top = Math.random() * maxY + "px";
+      const rect = dot.getBoundingClientRect();
+      const gameRect = game.getBoundingClientRect();
+
+      const centerX =
+        rect.left - gameRect.left + rect.width / 2;
+
+      const centerY =
+        rect.top - gameRect.top + rect.height / 2;
+
+      for (let i = 0; i < 10; i++) {
+
+        const particle =
+          document.createElement("div");
+
+        particle.className = "particle";
+
+        particle.style.left = centerX + "px";
+        particle.style.top = centerY + "px";
+
+        particle.style.setProperty(
+          "--x",
+          (Math.random() * 100 - 50) + "px"
+        );
+
+        particle.style.setProperty(
+          "--y",
+          (Math.random() * 100 - 50) + "px"
+        );
+
+        game.appendChild(particle);
+
+        setTimeout(function() {
+          particle.remove();
+        }, 400);
+      }
     }
 
+
+    // DOT CLICK
     dot.onclick = function() {
 
       if (!gameRunning) return;
 
       score++;
 
-      scoreText.textContent = "Score: " + score;
+      scoreText.textContent =
+        "Score: " + score;
+
+      playSound();
+
+      createParticles();
+
+      dot.classList.remove("hit");
+
+      void dot.offsetWidth;
 
       dot.classList.add("hit");
 
-      setTimeout(function() {
-        dot.classList.remove("hit");
-      }, 80);
-
       setDifficulty();
+
       moveDot();
     };
 
+
+    // START GAME
     startButton.onclick = function() {
 
       clearInterval(timer);
@@ -181,16 +314,24 @@
       levelText.textContent = "🟢 Easy";
 
       startButton.style.display = "none";
+
       dot.style.display = "block";
+
+      if (audioContext.state === "suspended") {
+        audioContext.resume();
+      }
 
       setDifficulty();
       moveDot();
+
 
       timer = setInterval(function() {
 
         time--;
 
-        timerText.textContent = "Time: " + time;
+        timerText.textContent =
+          "Time: " + time;
+
 
         if (time <= 0) {
 
@@ -200,31 +341,45 @@
           gameRunning = false;
 
           dot.style.display = "none";
-          startButton.style.display = "inline-block";
-          startButton.textContent = "PLAY AGAIN";
+
+          startButton.style.display =
+            "inline-block";
+
+          startButton.textContent =
+            "PLAY AGAIN";
+
 
           if (score > highScore) {
 
             highScore = score;
 
-            localStorage.setItem("highScore", highScore);
+            localStorage.setItem(
+              "highScore",
+              highScore
+            );
 
             highScoreText.textContent =
               "🏆 High Score: " + highScore;
 
-            alert("🎉 NEW HIGH SCORE! 🎉\n\nScore: " + score);
+            alert(
+              "🎉 NEW HIGH SCORE! 🎉\n\nScore: " +
+              score
+            );
 
           } else {
 
             alert(
-              "GAME OVER! 🎯\n\nScore: " + score +
-              "\nHigh Score: " + highScore
+              "GAME OVER! 🎯\n\nScore: " +
+              score +
+              "\nHigh Score: " +
+              highScore
             );
           }
         }
 
       }, 1000);
     };
+
   </script>
 
 </body>
