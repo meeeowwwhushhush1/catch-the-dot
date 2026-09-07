@@ -3,6 +3,7 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Catch the Dot 🎯</title>
+
   <style>
     * {
       box-sizing: border-box;
@@ -19,19 +20,21 @@
 
     h1 {
       margin: 15px 0 5px;
+      font-size: 30px;
     }
 
-    #score, #timer {
-      font-size: 20px;
+    #score, #timer, #highScore {
+      font-size: 19px;
       margin: 5px;
     }
 
     #game {
       position: relative;
       width: 95vw;
-      height: 75vh;
+      height: 70vh;
       margin: 15px auto;
       border: 2px solid white;
+      border-radius: 12px;
       background: #222;
       overflow: hidden;
     }
@@ -44,6 +47,12 @@
       border-radius: 50%;
       display: none;
       cursor: pointer;
+      transition: transform 0.08s;
+      box-shadow: 0 0 15px red;
+    }
+
+    #dot.hit {
+      transform: scale(1.5);
     }
 
     #start {
@@ -52,6 +61,7 @@
       border: none;
       border-radius: 10px;
       cursor: pointer;
+      margin-top: 5px;
     }
   </style>
 </head>
@@ -62,6 +72,7 @@
 
   <div id="score">Score: 0</div>
   <div id="timer">Time: 30</div>
+  <div id="highScore">🏆 High Score: 0</div>
 
   <button id="start">START GAME</button>
 
@@ -75,11 +86,16 @@
     let gameRunning = false;
     let timer;
 
+    let highScore = localStorage.getItem("highScore") || 0;
+
     const dot = document.getElementById("dot");
     const game = document.getElementById("game");
     const scoreText = document.getElementById("score");
     const timerText = document.getElementById("timer");
+    const highScoreText = document.getElementById("highScore");
     const startButton = document.getElementById("start");
+
+    highScoreText.textContent = "🏆 High Score: " + highScore;
 
     function moveDot() {
       const maxX = game.clientWidth - dot.offsetWidth;
@@ -90,38 +106,76 @@
     }
 
     dot.onclick = function() {
+
       if (!gameRunning) return;
 
       score++;
+
       scoreText.textContent = "Score: " + score;
+
+      dot.classList.add("hit");
+
+      setTimeout(function() {
+        dot.classList.remove("hit");
+      }, 80);
+
       moveDot();
     };
 
     startButton.onclick = function() {
+
+      clearInterval(timer);
+
       score = 0;
       time = 30;
       gameRunning = true;
 
       scoreText.textContent = "Score: 0";
       timerText.textContent = "Time: 30";
+
       startButton.style.display = "none";
       dot.style.display = "block";
 
       moveDot();
 
       timer = setInterval(function() {
+
         time--;
+
         timerText.textContent = "Time: " + time;
 
         if (time <= 0) {
+
           clearInterval(timer);
+
           gameRunning = false;
+
           dot.style.display = "none";
           startButton.style.display = "inline-block";
           startButton.textContent = "PLAY AGAIN";
 
-          alert("Game Over! 🎯 Your Score: " + score);
+          if (score > highScore) {
+
+            highScore = score;
+
+            localStorage.setItem("highScore", highScore);
+
+            highScoreText.textContent =
+              "🏆 High Score: " + highScore;
+
+            alert(
+              "🎉 NEW HIGH SCORE! 🎉\n\nYour Score: " + score
+            );
+
+          } else {
+
+            alert(
+              "GAME OVER! 🎯\n\nYour Score: " + score +
+              "\nHigh Score: " + highScore
+            );
+          }
         }
+
       }, 1000);
     };
   </script>
