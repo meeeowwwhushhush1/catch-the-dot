@@ -5,9 +5,7 @@
   <title>Catch the Dot 🎯</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -23,7 +21,7 @@
       font-size: 30px;
     }
 
-    #score, #timer, #highScore {
+    #score, #timer, #highScore, #level {
       font-size: 19px;
       margin: 5px;
     }
@@ -47,8 +45,8 @@
       border-radius: 50%;
       display: none;
       cursor: pointer;
-      transition: transform 0.08s;
       box-shadow: 0 0 15px red;
+      transition: width 0.15s, height 0.15s, transform 0.08s;
     }
 
     #dot.hit {
@@ -60,7 +58,6 @@
       font-size: 18px;
       border: none;
       border-radius: 10px;
-      cursor: pointer;
       margin-top: 5px;
     }
   </style>
@@ -73,6 +70,7 @@
   <div id="score">Score: 0</div>
   <div id="timer">Time: 30</div>
   <div id="highScore">🏆 High Score: 0</div>
+  <div id="level">🟢 Easy</div>
 
   <button id="start">START GAME</button>
 
@@ -85,6 +83,7 @@
     let time = 30;
     let gameRunning = false;
     let timer;
+    let moveTimer;
 
     let highScore = localStorage.getItem("highScore") || 0;
 
@@ -93,11 +92,56 @@
     const scoreText = document.getElementById("score");
     const timerText = document.getElementById("timer");
     const highScoreText = document.getElementById("highScore");
+    const levelText = document.getElementById("level");
     const startButton = document.getElementById("start");
 
     highScoreText.textContent = "🏆 High Score: " + highScore;
 
+    function setDifficulty() {
+
+      let size;
+      let speed;
+
+      if (score < 10) {
+        size = 55;
+        speed = 1000;
+        levelText.textContent = "🟢 Easy";
+      }
+
+      else if (score < 20) {
+        size = 45;
+        speed = 750;
+        levelText.textContent = "🟡 Medium";
+      }
+
+      else if (score < 30) {
+        size = 35;
+        speed = 550;
+        levelText.textContent = "🟠 Hard";
+      }
+
+      else {
+        size = 28;
+        speed = 400;
+        levelText.textContent = "🔴 INSANE";
+      }
+
+      dot.style.width = size + "px";
+      dot.style.height = size + "px";
+
+      clearInterval(moveTimer);
+
+      moveTimer = setInterval(function() {
+
+        if (gameRunning) {
+          moveDot();
+        }
+
+      }, speed);
+    }
+
     function moveDot() {
+
       const maxX = game.clientWidth - dot.offsetWidth;
       const maxY = game.clientHeight - dot.offsetHeight;
 
@@ -119,12 +163,14 @@
         dot.classList.remove("hit");
       }, 80);
 
+      setDifficulty();
       moveDot();
     };
 
     startButton.onclick = function() {
 
       clearInterval(timer);
+      clearInterval(moveTimer);
 
       score = 0;
       time = 30;
@@ -132,10 +178,12 @@
 
       scoreText.textContent = "Score: 0";
       timerText.textContent = "Time: 30";
+      levelText.textContent = "🟢 Easy";
 
       startButton.style.display = "none";
       dot.style.display = "block";
 
+      setDifficulty();
       moveDot();
 
       timer = setInterval(function() {
@@ -147,6 +195,7 @@
         if (time <= 0) {
 
           clearInterval(timer);
+          clearInterval(moveTimer);
 
           gameRunning = false;
 
@@ -163,14 +212,12 @@
             highScoreText.textContent =
               "🏆 High Score: " + highScore;
 
-            alert(
-              "🎉 NEW HIGH SCORE! 🎉\n\nYour Score: " + score
-            );
+            alert("🎉 NEW HIGH SCORE! 🎉\n\nScore: " + score);
 
           } else {
 
             alert(
-              "GAME OVER! 🎯\n\nYour Score: " + score +
+              "GAME OVER! 🎯\n\nScore: " + score +
               "\nHigh Score: " + highScore
             );
           }
