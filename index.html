@@ -296,6 +296,18 @@
     #start:active {
       transform: scale(0.96);
     }
+
+    #musicButton {
+      padding: 8px 14px;
+      margin-top: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      color: white;
+      background: rgba(0, 100, 255, 0.25);
+      border: 1px solid #00aaff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 170, 255, 0.4);
+    }
   </style>
 </head>
 
@@ -318,18 +330,37 @@
   <div id="level">🟢 Easy</div>
 
   <button id="start">START GAME</button>
+  <br>
+
+  <button id="musicButton">🎵 MUSIC ON</button>
 
   <div id="game">
     <div id="dot"></div>
   </div>
 
+  <audio id="bgMusic" loop preload="auto">
+    <source src="neon_arcade_background.wav" type="audio/wav">
+  </audio>
+
   <script>
+
     let score = 0;
     let time = 30;
     let gameRunning = false;
+
     let timer;
     let moveTimer;
     let audioContext = null;
+
+    const bgMusic =
+      document.getElementById("bgMusic");
+
+    const musicButton =
+      document.getElementById("musicButton");
+
+    bgMusic.volume = 0.35;
+
+    let musicOn = true;
 
     let highScore =
       localStorage.getItem("highScore") || 0;
@@ -355,11 +386,42 @@
     const startButton =
       document.getElementById("start");
 
+
     highScoreText.textContent =
       "🏆 High Score: " + highScore;
 
+
+    // MUSIC BUTTON
+
+    musicButton.onclick = function() {
+
+      if (musicOn) {
+
+        bgMusic.pause();
+
+        musicOn = false;
+
+        musicButton.textContent =
+          "🔇 MUSIC OFF";
+
+      } else {
+
+        bgMusic.play();
+
+        musicOn = true;
+
+        musicButton.textContent =
+          "🎵 MUSIC ON";
+      }
+    };
+
+
+    // SOUND
+
     function playSound() {
+
       if (!audioContext) {
+
         audioContext =
           new (window.AudioContext ||
                window.webkitAudioContext)();
@@ -407,7 +469,11 @@
       );
     }
 
+
+    // MOVE DOT
+
     function moveDot() {
+
       const maxX =
         game.clientWidth -
         dot.offsetWidth;
@@ -423,45 +489,70 @@
         Math.random() * maxY + "px";
     }
 
+
+    // DIFFICULTY
+
     function setDifficulty() {
+
       let size;
       let speed;
 
       if (score < 10) {
+
         size = 55;
         speed = 1000;
-        levelText.textContent = "🟢 Easy";
+
+        levelText.textContent =
+          "🟢 Easy";
 
       } else if (score < 20) {
+
         size = 45;
         speed = 750;
-        levelText.textContent = "🟡 Medium";
+
+        levelText.textContent =
+          "🟡 Medium";
 
       } else if (score < 30) {
+
         size = 35;
         speed = 550;
-        levelText.textContent = "🟠 Hard";
+
+        levelText.textContent =
+          "🟠 Hard";
 
       } else {
+
         size = 28;
         speed = 400;
-        levelText.textContent = "🔴 INSANE";
+
+        levelText.textContent =
+          "🔴 INSANE";
       }
 
-      dot.style.width = size + "px";
-      dot.style.height = size + "px";
+      dot.style.width =
+        size + "px";
+
+      dot.style.height =
+        size + "px";
 
       clearInterval(moveTimer);
 
       moveTimer =
         setInterval(function() {
+
           if (gameRunning) {
             moveDot();
           }
+
         }, speed);
     }
 
+
+    // PARTICLES
+
     function createParticles() {
+
       const rect =
         dot.getBoundingClientRect();
 
@@ -479,10 +570,12 @@
         rect.height / 2;
 
       for (let i = 0; i < 10; i++) {
+
         const particle =
           document.createElement("div");
 
-        particle.className = "particle";
+        particle.className =
+          "particle";
 
         particle.style.left =
           centerX + "px";
@@ -508,7 +601,11 @@
       }
     }
 
+
+    // DOT TAP
+
     dot.onclick = function() {
+
       if (!gameRunning) return;
 
       score++;
@@ -517,6 +614,7 @@
         "Score: " + score;
 
       playSound();
+
       createParticles();
 
       dot.classList.remove("hit");
@@ -526,10 +624,15 @@
       dot.classList.add("hit");
 
       setDifficulty();
+
       moveDot();
     };
 
+
+    // START GAME
+
     startButton.onclick = function() {
+
       clearInterval(timer);
       clearInterval(moveTimer);
 
@@ -552,7 +655,23 @@
       dot.style.display =
         "block";
 
+
+      // START MUSIC
+
+      if (musicOn) {
+
+        bgMusic.currentTime = 0;
+
+        bgMusic.play().catch(function(error) {
+          console.log("Music could not start:", error);
+        });
+      }
+
+
+      // AUDIO
+
       if (!audioContext) {
+
         audioContext =
           new (window.AudioContext ||
                window.webkitAudioContext)();
@@ -563,16 +682,20 @@
       }
 
       setDifficulty();
+
       moveDot();
+
 
       timer =
         setInterval(function() {
+
           time--;
 
           timerText.textContent =
             "Time: " + time;
 
           if (time <= 0) {
+
             clearInterval(timer);
             clearInterval(moveTimer);
 
@@ -587,7 +710,11 @@
             startButton.textContent =
               "PLAY AGAIN";
 
+            bgMusic.pause();
+
+
             if (score > highScore) {
+
               highScore = score;
 
               localStorage.setItem(
@@ -605,6 +732,7 @@
               );
 
             } else {
+
               alert(
                 "GAME OVER! 🎯\n\nScore: " +
                 score +
@@ -613,8 +741,10 @@
               );
             }
           }
+
         }, 1000);
     };
+
   </script>
 
 </body>
